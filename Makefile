@@ -7,5 +7,4 @@ prod:
 	$(MAKE) prod-be
 
 prod-be:
-	ENVIRONMENT=prod HOST=0.0.0.0 uv run python -m app.app
-
+	ENVIRONMENT=prod HOST=0.0.0.0 python -m app.app
