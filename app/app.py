@@ -53,29 +53,6 @@ class GenerateRequest(BaseModel):
 
 @app.post("/generate")
 def generate_music(props: GenerateRequest):
-    logger.info(f"Received generation request with properties: {props}")
-    # wait 2 seconds
-    time.sleep(2)
-    logger.info("Starting music generation...")
-
-    # Load sample audio from the app directory, independent of process cwd.
-    try:
-        with SAMPLE_AUDIO_PATH.open("rb") as f:
-            clip = f.read()
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Missing sample audio file at: {SAMPLE_AUDIO_PATH}",
-        ) from exc
-
-    return Response(
-        content=clip,
-        media_type="audio/mpeg",
-        headers={"Content-Disposition": 'attachment; filename="sample.mp3"'},
-    )
-
-    logger.info(f"Received generation request with properties: {props}")
-
     try:
         clip = generate(
             prompt=props.prompt,
