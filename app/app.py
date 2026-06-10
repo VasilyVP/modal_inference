@@ -1,5 +1,3 @@
-import time
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +9,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr
-from typing import Any, Literal
+from typing import Literal
 from app.generate import generate
 from app.music_generator import modal_app
 
@@ -22,6 +20,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+# Global variable to hold the Modal app context for the lifespan of the FastAPI worker.
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     global _modal_app_ctx
@@ -30,7 +29,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     logger.info("Initializing Modal app context for API worker...")
 
     modal_ctx = modal_app.run()
-    
+
     await modal_ctx.__aenter__()
     try:
         yield
@@ -38,7 +37,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         await modal_ctx.__aexit__(None, None, None)
 
 
-app = FastAPI(lifespan=lifespan)  # lifespan=lifespan
+app = FastAPI(lifespan=lifespan)
 
 
 class GenerateRequest(BaseModel):
@@ -62,6 +61,7 @@ def generate_music(props: GenerateRequest):
             manual_seeds=props.manual_seeds,
         )
     except RuntimeError as exc:
+        logger.error("Error generating music: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     audio_format = props.format
